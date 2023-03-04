@@ -59,16 +59,12 @@
 
   private-flake-rev = "9f1dd0df5b54a7dc75b618034482ed42ce34383d";
 
-  private-flake-info =
-    pkgs.runCommand "private-flake-info" {}
-    ''
-      echo '{"default_branch": "main"}' > $out
-    '';
-
   private-flake-api =
     pkgs.runCommand "private-flake" {}
     ''
       mkdir -p $out/{archive,branches}
+
+      echo '{"default_branch": "main"}' > $out/index.json
 
       # Setup https://codeberg.org/api/swagger#/repository/repoListBranches
       # This is simulating the use of the default HEAD ref
@@ -147,7 +143,9 @@ in {
             dir = archive;
           }
         ];
-        locations."/api/v1/repos/fancy-enterprise/private-flake".alias = private-flake-info;
+        # NOTE: while this works well to emulate this endpoint, it technically isn't identical,
+        # as httpd will redirect and add a trailing / first.
+        locations."/api/v1/repos/fancy-enterprise/private-flake".index = "index.json";
       };
     };
 
